@@ -1,0 +1,5 @@
+pdf2image==1.11.0
+Pillow==7.0.0
+pygame==1.9.6
+pygame-menu==2.1.2
+pyperclip==1.7.0
