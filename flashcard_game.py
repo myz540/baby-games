@@ -20,11 +20,13 @@ class FlashcardGame:
         self.MOUSE_COUNTER = 0
         self.DEFAULT_MODE = 'NORMAL'
         self.DEFAULT_COLOR_SCHEMA = 'PRIMARY'
+        self.DEFAULT_DARA_FACE = False
+        self.DEFAULT_SUBSAMPLE_SIZE = 100
 
         self._running = False
 
-        # self._test = os.environ.get("DEBUG")
-        self._test = True # for now...
+        self._test = os.environ.get("DEBUG")
+        #self._test = True # for now...
 
         self.main_menu = None
         self.surface = None
@@ -50,6 +52,7 @@ class FlashcardGame:
         self.params = dict()
         self.params['mode'] = self.DEFAULT_MODE
         self.params['color_schema'] = self.DEFAULT_COLOR_SCHEMA
+        self.params['dara_face'] = self.DEFAULT_DARA_FACE
 
     def main(self):
 
@@ -74,6 +77,7 @@ class FlashcardGame:
 
         while 1:
             for event in pygame.event.get():
+                dara_face = None
                 if event.type == pygame.QUIT:
                     sys.exit()
 
@@ -90,16 +94,26 @@ class FlashcardGame:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
-                    if self.MOUSE_COUNTER % 5 == 0:
-                        local_color = self.get_color()
-                        self.MOUSE_COUNTER = 0
+                    print(event.button)
+                    print(type(event.button))
 
-                    self.MOUSE_COUNTER += 1
+                    if self.params['dara_face'] and event.button == 1:
+                        print("HERE")
+                        dara_face = pygame.image.load("static/intro_ball.gif").convert()
+                        dara_face_rect = dara_face.get_rect()
+                        card.blit(dara_face, pygame.mouse.get_pos())
+                    else:
+                        if self.MOUSE_COUNTER % 5 == 0:
+                            local_color = self.get_color()
+                            self.MOUSE_COUNTER = 0
 
-                    pygame.mouse.set_cursor(*pygame.cursors.diamond)
-                    pygame.draw.circle(card, local_color, (pygame.mouse.get_pos()), 60)
+                        self.MOUSE_COUNTER += 1
 
-                self.surface.blit(card, cardrect)
+                        pygame.mouse.set_cursor(*pygame.cursors.diamond)
+                        pygame.draw.circle(card, local_color, (pygame.mouse.get_pos()), 60)
+
+                self.surface.blit(card, (0, 0))
+
                 pygame.display.flip()
 
     def draw_card(self, event=None):
@@ -151,16 +165,14 @@ class FlashcardGame:
         self.clock = pygame.time.Clock()
 
     def init_flashcards(self):
-        # ToDo implement forward and back ward buttons, initially, buttons are all inert until a sentinel key is
-        #  pressed, then all buttons move forward and only one moves reverse
         # flash_card_pile is a list<Surface> objects
         # if too many flashcards are used, the system freezes trying to load them all into memory
         # quick and dirty subsampling
-        if len(self.flashcard_sources) > 100:
-            sources = random.sample(self.flashcard_sources, 100)
+        if len(self.flashcard_sources) > self.DEFAULT_SUBSAMPLE_SIZE:
+            sources = random.sample(self.flashcard_sources, self.DEFAULT_SUBSAMPLE_SIZE)
         else:
             sources = self.flashcard_sources
-
+        # ToDo the unaddressed issue here is to sample a different set of flashcards when the first set has been cycled,
         self.flash_card_pile = [pygame.image.load(s) for s in sources]
         self.remaining_flash_card_pile = deque(self.flash_card_pile.copy())
         random.shuffle(self.remaining_flash_card_pile)
@@ -173,6 +185,12 @@ class FlashcardGame:
     def change_color_schema(self, value, color_schema):
         self.params['color_schema'] = color_schema
         print(color_schema)
+
+    def toggle_dara_face(self, value, _bool):
+        if _bool == 'YES':
+            self.params['dara_face'] = True
+        else:
+            self.params['dara_face'] = False
 
     def init_menu(self):
         # Play menu
@@ -214,7 +232,7 @@ class FlashcardGame:
         self.play_menu.add_option('Start',  # When pressing return -> self.play_game()
                                   self.play_game
                                   )
-        self.play_menu.add_selector('Select difficulty',
+        self.play_menu.add_selector('Select mode',
                                     [('1 - Normal Mode', 'NORMAL'),
                                      ('2 - No Repeats', 'NOREPEATS'),
                                      ('3 - Alphabet Only', 'ALPHABET')],
@@ -226,6 +244,11 @@ class FlashcardGame:
                                      ('3 - Black', 'BLACK')],
                                     onchange=self.change_color_schema,
                                     selector_id='select_color_schema')
+        self.play_menu.add_selector('Dara face???',
+                                    [('No', 'NO'),
+                                     ('Yes', 'YES')],
+                                    onchange=self.toggle_dara_face,
+                                    selector_id='dara_face')
         self.play_menu.add_option('Another menu', self.play_submenu)
         self.play_menu.add_option('Return to main menu', pygameMenu.events.BACK)
 
