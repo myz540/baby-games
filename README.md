@@ -34,3 +34,4 @@ If you want to add your own flashcards, the process is straightforward.
 ## Future plans
 * See #ToDos
 * setup a config file to manage things like screen size and flashcard source directories
+  

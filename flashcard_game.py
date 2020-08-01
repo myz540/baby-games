@@ -41,7 +41,8 @@ class FlashcardGame:
         self.play_menu = None
         self.play_submenu = None
 
-        self.size = self.width, self.height = (800, 600)
+        #self.size = self.width, self.height = (800, 600)
+        self.size = self.width, self.height = (1920, 1080)
         if self._test:
             print("Using test flashcard sources")
             self.flashcard_sources = glob.glob("static/flashcards/alphabet/*")
@@ -99,7 +100,8 @@ class FlashcardGame:
 
                     if self.params['dara_face'] and event.button == 1:
                         print("HERE")
-                        dara_face = pygame.image.load("static/intro_ball.gif").convert()
+                        dara_face = pygame.image.load("static/dara_face.jpg").convert()
+                        dara_face = pygame.transform.scale(dara_face, (140, 210))
                         dara_face_rect = dara_face.get_rect()
                         card.blit(dara_face, pygame.mouse.get_pos())
                     else:
@@ -159,7 +161,8 @@ class FlashcardGame:
         return color
 
     def init_surface(self):
-        self.surface = pygame.display.set_mode(self.size)
+        #self.surface = pygame.display.set_mode(self.size)
+        self.surface = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
     def init_clock(self):
         self.clock = pygame.time.Clock()

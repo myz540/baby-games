@@ -7,6 +7,9 @@ import os
 import glob
 import random
 from consts import ALL_COLORS, PRIMARY_COLORS
+import random
+import math
+
 
 pygame.init()
 
