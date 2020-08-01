@@ -42,8 +42,8 @@ clock = pygame.time.Clock()
 kill_count = 0
 
 # set up background for scrolling
-background = pygame.image.load('static/background/seamless-bg1.jpg').convert()
-background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT*3])
+background = pygame.image.load('static/background/seamless-bg2.jpg').convert()
+background = pygame.transform.scale(background, [SCREEN_WIDTH, SCREEN_HEIGHT*2])
 y = 0
 
 # -------- Main Program Loop -----------
@@ -86,14 +86,14 @@ while not done:
     # scroll background here
     rel_y = y % background.get_rect().height
     screen.blit(background, (0, rel_y - background.get_rect().height / 2.0))
-    print(rel_y ,y)
-
+    #print(rel_y, y)
+    y += 2
     if rel_y >= SCREEN_HEIGHT:
+        screen.blit(background, (0, -background.get_rect().height / 2.0))
         y = 0
-        screen.blit(background, (0, y - background.get_rect().height / 2.0))
 
-    #pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
-    y += 1
+    pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
+
 
     # Draw all the spites
     all_sprites_group.draw(screen)
