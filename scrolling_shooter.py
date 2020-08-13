@@ -92,7 +92,7 @@ while not done:
         screen.blit(background, (0, -background.get_rect().height / 2.0))
         y = 0
 
-    pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
+    #pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
 
 
     # Draw all the spites
