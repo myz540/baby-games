@@ -23,7 +23,26 @@ class Block(pygame.sprite.Sprite):
         self.image = pygame.Surface([20, 15])
         self.image.fill(color)
 
+        self.left_boundary = 0
+        self.right_boundary = 0
+        self.top_boundary = 0
+        self.bottom_boundary = 0
+
+        # Instance variables for our current speed and direction
+        self.change_x = 0
+        self.change_y = 0
+
         self.rect = self.image.get_rect()
+
+    def update(self):
+        self.rect.x += self.change_x
+        self.rect.y += self.change_y
+
+        if self.rect.right >= self.right_boundary or self.rect.left <= self.left_boundary:
+            self.change_x *= -1
+
+        if self.rect.bottom >= self.bottom_boundary or self.rect.top <= self.top_boundary:
+            self.change_y *= -1
 
 
 class Player(pygame.sprite.Sprite):
@@ -72,7 +91,7 @@ class Projectile(pygame.sprite.Sprite):
         super().__init__()
 
         self.image = pygame.Surface([4, 10])
-        self.image.fill(WHITE)
+        self.image.fill(BLUE)
         self.rect = self.image.get_rect()
 
         # Move the bullet to our starting location

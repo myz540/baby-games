@@ -24,6 +24,14 @@ for i in range(50):
     block.rect.x = random.randrange(SCREEN_WIDTH)
     block.rect.y = random.randrange(350)
 
+    # Set bounds for bouncing blocks
+    block.change_x = random.randrange(-3, 4)
+    block.change_y = random.randrange(-3, 4)
+    block.left_boundary = 0
+    block.top_boundary = 0
+    block.right_boundary = SCREEN_WIDTH
+    block.bottom_boundary = SCREEN_HEIGHT
+
     # Add the block to the list of objects
     block_group.add(block)
     all_sprites_group.add(block)
@@ -66,6 +74,7 @@ while not done:
     # events are handled
     all_sprites_group.update()
 
+    # check if friendly projectiles destroyed an enemy block
     for _projectile in friendly_projectile_group:
 
         block_hit_list = pygame.sprite.spritecollide(_projectile, block_group, True)
@@ -80,6 +89,12 @@ while not done:
             friendly_projectile_group.remove(_projectile)
             all_sprites_group.remove(_projectile)
 
+    # check if enemy block hits player
+    player_hit = pygame.sprite.spritecollide(player, block_group, False)
+    if player_hit:
+        print("You died!")
+        done = True
+
     # Clear the screen
     screen.fill(WHITE)
 
@@ -93,7 +108,6 @@ while not done:
         y = 0
 
     #pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
-
 
     # Draw all the spites
     all_sprites_group.draw(screen)
