@@ -11,7 +11,7 @@ screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
 friendly_projectile_group = pygame.sprite.Group()
 
-block_group = pygame.sprite.Group()
+enemy_block_group = pygame.sprite.Group()
 
 # This is a list of every sprite. All blocks and the player block as well.
 all_sprites_group = pygame.sprite.Group()
@@ -33,7 +33,7 @@ for i in range(50):
     block.bottom_boundary = SCREEN_HEIGHT
 
     # Add the block to the list of objects
-    block_group.add(block)
+    enemy_block_group.add(block)
     all_sprites_group.add(block)
 
 
@@ -77,7 +77,7 @@ while not done:
     # check if friendly projectiles destroyed an enemy block
     for _projectile in friendly_projectile_group:
 
-        block_hit_list = pygame.sprite.spritecollide(_projectile, block_group, True)
+        block_hit_list = pygame.sprite.spritecollide(_projectile, enemy_block_group, True)
 
         for block in block_hit_list:
             friendly_projectile_group.remove(_projectile)
@@ -90,7 +90,7 @@ while not done:
             all_sprites_group.remove(_projectile)
 
     # check if enemy block hits player
-    player_hit = pygame.sprite.spritecollide(player, block_group, False)
+    player_hit = pygame.sprite.spritecollide(player, enemy_block_group, True)
     if player_hit:
         print("You died!")
         done = True
@@ -101,13 +101,13 @@ while not done:
     # scroll background here
     rel_y = y % background.get_rect().height
     screen.blit(background, (0, rel_y - background.get_rect().height / 2.0))
-    #print(rel_y, y)
+    print(rel_y, y)
     y += 2
     if rel_y >= SCREEN_HEIGHT:
         screen.blit(background, (0, -background.get_rect().height / 2.0))
         y = 0
 
-    #pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
+    pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
 
     # Draw all the spites
     all_sprites_group.draw(screen)

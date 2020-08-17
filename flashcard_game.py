@@ -27,7 +27,6 @@ class FlashcardGame:
 
         self._test = os.environ.get("DEBUG")
 
-        self.main_menu = None
         self.surface = None
         self.clock = None
 
@@ -70,16 +69,13 @@ class FlashcardGame:
 
             self.main_menu.mainloop(events)
 
-            pygame.display.flip()
 
     def play_game(self):
-        card = self.draw_card()
+        card = self.flash_card_pile[self.current_card_idx]
         card = pygame.transform.scale(card, self.size)
-        cardrect = card.get_rect()
 
         while 1:
             for event in pygame.event.get():
-                dara_face = None
                 if event.type == pygame.QUIT:
                     sys.exit()
 
@@ -89,7 +85,6 @@ class FlashcardGame:
                         print(pygame.key.name(event.key))
                         card = self.draw_card(event)
                         card = pygame.transform.scale(card, self.size)
-                        cardrect = card.get_rect()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
@@ -100,10 +95,10 @@ class FlashcardGame:
                         print("HERE")
                         dara_face = pygame.image.load("static/dara_face.jpg").convert()
                         dara_face = pygame.transform.scale(dara_face, (140, 210))
-                        dara_face_rect = dara_face.get_rect()
                         card.blit(dara_face, pygame.mouse.get_pos())
                     else:
                         if self.MOUSE_COUNTER % 5 == 0:
+                            # This ensures local_color is always set, probably not the best...
                             local_color = self.get_color()
                             self.MOUSE_COUNTER = 0
 
@@ -186,8 +181,8 @@ class FlashcardGame:
         else:
             sources = self.flashcard_sources
 
-        self.flash_card_pile = deque([pygame.image.load(s) for s in sources])
-        self.current_card_idx = -1
+        self.flash_card_pile = deque([pygame.image.load(s).convert() for s in sources])
+        self.current_card_idx = 0
 
     def change_mode(self, value, mode):
         self.params['mode'] = mode
