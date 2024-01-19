@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 pdf2image
 Pillow
 pygame
 pygame-menu==2.1.2
 pyperclip
+=======
+numpy==1.22.0
+pdf2image==1.11.0
+Pillow==10.0.1
+pygame==1.9.6
+pygame-menu==2.1.2
+pyperclip==1.7.0
+>>>>>>> d0c0549a364e626a7cf9d273e38c9e3a8c65f9b3

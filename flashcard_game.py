@@ -1,11 +1,10 @@
 import sys
 import pygame
-from pygame.locals import *
 from collections import deque
 import os
 import glob
 import random
-from consts import ALL_COLORS, PRIMARY_COLORS
+from static.consts import ALL_COLORS, PRIMARY_COLORS
 import pygameMenu
 import traceback
 
@@ -21,39 +20,40 @@ class FlashcardGame:
         self.DEFAULT_MODE = 'NORMAL'
         self.DEFAULT_COLOR_SCHEMA = 'PRIMARY'
         self.DEFAULT_DARA_FACE = False
-        self.DEFAULT_SUBSAMPLE_SIZE = 100
+        self.DEFAULT_SUBSAMPLE_SIZE = 5 # 100
+        self.DEFAULT_RECYCLE_FLASHCARDS = False
 
         self._running = False
 
         self._test = os.environ.get("DEBUG")
-        #self._test = True # for now...
 
-        self.main_menu = None
         self.surface = None
         self.clock = None
 
-        self.current_card = None
+        self.current_card_idx = 0
         self.flash_card_pile = None
-        self.remaining_flash_card_pile = None
-        self.discard_flash_card_pile = None
 
         self.main_menu = None
         self.play_menu = None
         self.play_submenu = None
 
-        #self.size = self.width, self.height = (800, 600)
-        self.size = self.width, self.height = (1920, 1080)
+        self.size = self.width, self.height = (800, 600)
+        #self.size = self.width, self.height = (1920, 1080)
         if self._test:
             print("Using test flashcard sources")
-            self.flashcard_sources = glob.glob("static/flashcards/alphabet/*")
+            self.flashcard_sources = glob.glob("static/test/alphabet/*")
         else:
             print("Using default flashcard sources with subsampling")
             self.flashcard_sources = glob.glob("static/flashcards/**/*")
+
+        self.flashcard_sources = set(self.flashcard_sources)
+        self.fresh_sources = self.flashcard_sources.copy()
 
         self.params = dict()
         self.params['mode'] = self.DEFAULT_MODE
         self.params['color_schema'] = self.DEFAULT_COLOR_SCHEMA
         self.params['dara_face'] = self.DEFAULT_DARA_FACE
+        self.params['recycle_flashcards'] = self.DEFAULT_RECYCLE_FLASHCARDS
 
     def main(self):
 
@@ -69,16 +69,13 @@ class FlashcardGame:
 
             self.main_menu.mainloop(events)
 
-            pygame.display.flip()
 
     def play_game(self):
-        card = self.draw_card()
+        card = self.flash_card_pile[self.current_card_idx]
         card = pygame.transform.scale(card, self.size)
-        cardrect = card.get_rect()
 
         while 1:
             for event in pygame.event.get():
-                dara_face = None
                 if event.type == pygame.QUIT:
                     sys.exit()
 
@@ -101,10 +98,10 @@ class FlashcardGame:
                         print("HERE")
                         dara_face = pygame.image.load("static/dara_face.jpg").convert()
                         dara_face = pygame.transform.scale(dara_face, (140, 210))
-                        dara_face_rect = dara_face.get_rect()
                         card.blit(dara_face, pygame.mouse.get_pos())
                     else:
                         if self.MOUSE_COUNTER % 5 == 0:
+                            # This ensures local_color is always set, probably not the best...
                             local_color = self.get_color()
                             self.MOUSE_COUNTER = 0
 
@@ -117,6 +114,7 @@ class FlashcardGame:
                 pygame.display.flip()
 
     def draw_card(self, event=None):
+        print(len(self.flash_card_pile))
         mode = self.params['mode']
         if mode == 'NOREPEATS':
             if isinstance(event, pygame.event.EventType) and event.key == pygame.K_LEFT:
@@ -128,19 +126,24 @@ class FlashcardGame:
         return card
 
     def _draw_new_card(self):
-        if len(self.remaining_flash_card_pile) == 0:
-            print("Out of cards, resetting the flash card pile")
-            self.remaining_flash_card_pile = deque(self.flash_card_pile.copy())
-            random.shuffle(self.remaining_flash_card_pile)
-            self.discard_flash_card_pile = deque()
+        self.current_card_idx += 1
+        if self.current_card_idx >= len(self.flash_card_pile):
+            if self.params['recycle_flashcards']:
+                print("Out of cards, reshuffling the flash card pile...")
+                random.shuffle(self.flash_card_pile)
+            else:
+                print("Out of cards, creating a new flash card pile...")
+                self.init_flashcards()
+            self.current_card_idx = 0
 
-        card = self.remaining_flash_card_pile.popleft()
-        self.discard_flash_card_pile.append(card)
+        print("draw_card {}".format(self.current_card_idx))
+        card = self.flash_card_pile[self.current_card_idx]
         return card
 
     def _draw_previous_card(self):
-        card = self.discard_flash_card_pile.pop()
-        self.remaining_flash_card_pile.appendleft(card)
+        if self.current_card_idx > 0:
+            self.current_card_idx -= 1
+        card = self.flash_card_pile[self.current_card_idx]
         return card
 
     def get_color(self, color_tuple=None):
@@ -159,25 +162,29 @@ class FlashcardGame:
         return color
 
     def init_surface(self):
-        #self.surface = pygame.display.set_mode(self.size)
-        self.surface = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.surface = pygame.display.set_mode(self.size)
+        #self.surface = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
     def init_clock(self):
         self.clock = pygame.time.Clock()
 
     def init_flashcards(self):
-        # flash_card_pile is a list<Surface> objects
+        # flash_card_pile is a deque<Surface> objects
         # if too many flashcards are used, the system freezes trying to load them all into memory
         # quick and dirty subsampling
         if len(self.flashcard_sources) > self.DEFAULT_SUBSAMPLE_SIZE:
-            sources = random.sample(self.flashcard_sources, self.DEFAULT_SUBSAMPLE_SIZE)
+            try:
+                sources = set(random.sample(self.fresh_sources, self.DEFAULT_SUBSAMPLE_SIZE))
+                self.fresh_sources = self.fresh_sources - sources
+            except ValueError:
+                print("Not enough fresh flashcards left, exiting...")
+                sys.exit()
+
         else:
             sources = self.flashcard_sources
-        # ToDo the unaddressed issue here is to sample a different set of flashcards when the first set has been cycled,
-        self.flash_card_pile = [pygame.image.load(s) for s in sources]
-        self.remaining_flash_card_pile = deque(self.flash_card_pile.copy())
-        random.shuffle(self.remaining_flash_card_pile)
-        self.discard_flash_card_pile = deque()
+
+        self.flash_card_pile = deque([pygame.image.load(s).convert() for s in sources])
+        self.current_card_idx = 0
 
     def change_mode(self, value, mode):
         self.params['mode'] = mode
@@ -192,6 +199,12 @@ class FlashcardGame:
             self.params['dara_face'] = True
         else:
             self.params['dara_face'] = False
+
+    def toggle_recycle(self, value, _bool):
+        if _bool == 'YES':
+            self.params['recycle_flashcards'] = True
+        else:
+            self.params['recycle_flashcards'] = False
 
     def init_menu(self):
         # Play menu
@@ -250,6 +263,11 @@ class FlashcardGame:
                                      ('Yes', 'YES')],
                                     onchange=self.toggle_dara_face,
                                     selector_id='dara_face')
+        self.play_menu.add_selector('Recycle flashcards?',
+                                    [('No', 'NO'),
+                                     ('Yes', 'YES')],
+                                    onchange=self.toggle_recycle,
+                                    selector_id='recycle_flashcards')
         self.play_menu.add_option('Another menu', self.play_submenu)
         self.play_menu.add_option('Return to main menu', pygameMenu.events.BACK)
 
