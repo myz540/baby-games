@@ -68,11 +68,11 @@ class Player(pygame.sprite.Sprite):
 
 class Projectile(pygame.sprite.Sprite):
 
-    def __init__(self, start_x, start_y, dest_x, dest_y):
+    def __init__(self, start_x, start_y, dest_x, dest_y, color=WHITE):
         super().__init__()
 
         self.image = pygame.Surface([4, 10])
-        self.image.fill(WHITE)
+        self.image.fill(color)
         self.rect = self.image.get_rect()
 
         # Move the bullet to our starting location

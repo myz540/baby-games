@@ -84,14 +84,13 @@ class FlashcardGame:
 
                 # ToDo implement feature where for alphabet flash cards, the correct key needs to be pressed to move on
                 if event.type == pygame.KEYDOWN:
-                    if event.mod == pygame.KMOD_NONE:
-                        print(pygame.key.name(event.key))
-                        try:
-                            card = self.draw_card(event)
-                        except IndexError as e:
-                            traceback.print_exc()
-                        card = pygame.transform.scale(card, self.size)
-                        cardrect = card.get_rect()
+                    print(pygame.key.name(event.key))
+                    try:
+                        card = self.draw_card(event)
+                    except IndexError as e:
+                        traceback.print_exc()
+                    card = pygame.transform.scale(card, self.size)
+                    cardrect = card.get_rect()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
@@ -113,7 +112,6 @@ class FlashcardGame:
 
                         pygame.mouse.set_cursor(*pygame.cursors.diamond)
                         pygame.draw.circle(card, local_color, (pygame.mouse.get_pos()), 60)
-
                 self.surface.blit(card, (0, 0))
 
                 pygame.display.flip()
@@ -121,7 +119,7 @@ class FlashcardGame:
     def draw_card(self, event=None):
         mode = self.params['mode']
         if mode == 'NOREPEATS':
-            if isinstance(event, pygame.event.EventType) and event.key == K_LEFT:
+            if isinstance(event, pygame.event.EventType) and event.key == pygame.K_LEFT:
                 card = self._draw_previous_card()
             else:
                 card = self._draw_new_card()

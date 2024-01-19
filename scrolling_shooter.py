@@ -57,7 +57,7 @@ while not done:
             mouse_x = mouse_pos[0]
             mouse_y = mouse_pos[1]
 
-            projectile = Projectile(player.rect.x, player.rect.y, mouse_x, mouse_y)
+            projectile = Projectile(player.rect.x, player.rect.y, mouse_x, mouse_y, color=BLACK)
             projectile.rect.x = player.rect.x
             projectile.rect.y = player.rect.y
             friendly_projectile_group.add(projectile)
@@ -84,13 +84,13 @@ while not done:
     screen.fill(WHITE)
 
     # scroll background here
-    rel_y = y % background.get_rect().height
-    screen.blit(background, (0, rel_y - background.get_rect().height / 2.0))
+    #rel_y = y % background.get_rect().height
+    #screen.blit(background, (0, rel_y - background.get_rect().height / 2.0))
     #print(rel_y, y)
-    y += 2
-    if rel_y >= SCREEN_HEIGHT:
-        screen.blit(background, (0, -background.get_rect().height / 2.0))
-        y = 0
+    #y += 2
+    #if rel_y >= SCREEN_HEIGHT:
+    #    screen.blit(background, (0, -background.get_rect().height / 2.0))
+    #    y = 0
 
     #pygame.draw.line(screen, (255, 0, 0), (0, rel_y), (SCREEN_WIDTH, rel_y), 3)
 
