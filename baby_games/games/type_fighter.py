@@ -129,8 +129,8 @@ class Fighter:
         # Add jump physics
         self.initial_y = y  # Store initial y position
         self.y_velocity = 0
-        self.jump_speed = -15  # Negative because pygame y increases downward
-        self.gravity = 0.8
+        self.jump_speed = -18  # Increased for higher jump
+        self.gravity = 0.7  # Reduced for slower fall
         self.is_jumping = False
     
     def setup_animations(self):
@@ -223,8 +223,19 @@ class Fighter:
         # after the attack animation completes
 
 class QTESprite:
-    def __init__(self, x: int, y: int, width: int, height: int, monster_type: str = "blue"):
-        self.rect = pygame.Rect(x, y, width, height)
+    def __init__(self, x: int, y: int, width: int, height: int, monster_type: str = "blue", scale: float = 1.0):
+        # Apply scale to width and height
+        self.scale = scale
+        self.original_width = width
+        self.original_height = height
+        self.scaled_width = int(width * scale)
+        self.scaled_height = int(height * scale)
+        
+        # Center the sprite at the original position
+        x_offset = (width - self.scaled_width) // 2
+        y_offset = (height - self.scaled_height) // 2
+        
+        self.rect = pygame.Rect(x + x_offset, y + y_offset, self.scaled_width, self.scaled_height)
         self.state = MonsterState.IDLE
         self.monster_type = monster_type
         self.animations: Dict[MonsterState, Animation] = {}
@@ -237,11 +248,11 @@ class QTESprite:
         # Define animation data
         animation_data = {
             MonsterState.IDLE: (
-                self.rect.width, self.rect.height, 200,  # width, height, duration
+                self.original_width, self.original_height, 200,  # width, height, duration
                 [base_path / f"idle_{i}.png" for i in range(2)]  # Assuming 2 idle frames
             ),
             MonsterState.HURT: (
-                self.rect.width, self.rect.height, 150,
+                self.original_width, self.original_height, 150,
                 [base_path / f"hurt_{i}.png" for i in range(1)]  # Assuming 1 hit frames
             ),
         }
@@ -259,6 +270,11 @@ class QTESprite:
     def draw(self, screen: pygame.Surface):
         current_time = pygame.time.get_ticks()
         frame = self.animations[self.state].update(current_time)
+        
+        # Scale the frame if needed
+        if self.scale != 1.0:
+            frame = pygame.transform.scale(frame, (self.scaled_width, self.scaled_height))
+        
         screen.blit(frame, self.rect)
 
 class TypeFighter:
@@ -269,7 +285,7 @@ class TypeFighter:
         pygame.display.set_caption("Type Fighter")
         
         # Center the fighter horizontally
-        self.fighter = Fighter(self.screen_size[0] // 3, 300)  # Keep fighter at 1/3 of screen
+        self.fighter = Fighter(self.screen_size[0] // 3, 400)  # Lowered by 300 pixels
 
         self.font = pygame.font.Font(None, 36)
         
@@ -292,37 +308,37 @@ class TypeFighter:
         # Define the sequence of quick time events
         self.qt_events = [
             QTEvent(
-                position=300,
+                position=700,
                 key='a',
                 event_type=QTEventType.ATTACK,
                 time_limit=2000,
                 success_message="First strike!",
                 fail_message="Missed the opening!",
                 damage_on_fail=10,
-                trigger_distance=120,
-                sprite=QTESprite(300, 300, 80, 120, "blue")
+                trigger_distance=70,
+                sprite=QTESprite(700, 400, 80, 120, "blue", scale=0.5)
             ),
             QTEvent(
-                position=600,
+                position=1400,
                 key='j',
                 event_type=QTEventType.JUMP,
                 time_limit=1500,
                 success_message="Aerial maneuver!",
                 fail_message="Couldn't get airborne!",
                 damage_on_fail=15,
-                trigger_distance=150,
-                sprite=QTESprite(600, 200, 80, 120, "blue")
+                trigger_distance=70,
+                sprite=QTESprite(1400, 400, 80, 120, "blue", scale=0.5)
             ),
             QTEvent(
-                position=900,
+                position=2000,
                 key='k',
                 event_type=QTEventType.ATTACK,
                 time_limit=2000,
                 success_message="Finishing blow!",
                 fail_message="Failed to finish!",
                 damage_on_fail=20,
-                trigger_distance=120,
-                sprite=QTESprite(900, 300, 80, 120, "blue")
+                trigger_distance=70,
+                sprite=QTESprite(2000, 400, 80, 120, "blue", scale=0.5)
             ),
         ]
         self.current_event_index = 0
@@ -445,7 +461,7 @@ class TypeFighter:
             if (not self.waiting_for_input and 
                 self.animation_complete and
                 self.current_event_index < len(self.qt_events) and 
-                self.world_offset >= self.qt_events[self.current_event_index].position - self.fighter.rect.x):
+                self.world_offset >= self.qt_events[self.current_event_index].position - self.fighter.rect.x - self.qt_events[self.current_event_index].trigger_distance):
                 self.show_prompt(self.qt_events[self.current_event_index])
                 self.current_event_index += 1
             
@@ -459,6 +475,9 @@ class TypeFighter:
             # Update world position instead of moving fighter
             self.update_world()
             
+            # Update fighter physics regardless of movement state
+            self.fighter.update_physics()
+            
             # Draw
             self.draw_background()
             
@@ -471,6 +490,13 @@ class TypeFighter:
                     # Only draw if on screen
                     if -event.sprite.rect.width <= sprite_screen_x <= self.screen_size[0]:
                         event.sprite.draw(self.screen)
+            
+            # Draw the current QTE sprite if there is one
+            if self.waiting_for_input and self.current_event and self.current_event.sprite:
+                sprite_screen_x = self.current_event.position - self.world_offset
+                self.current_event.sprite.rect.x = sprite_screen_x
+                if -self.current_event.sprite.rect.width <= sprite_screen_x <= self.screen_size[0]:
+                    self.current_event.sprite.draw(self.screen)
             
             self.fighter.draw(self.screen)
             self.draw_prompt()
