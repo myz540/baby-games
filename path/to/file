@@ -1,0 +1,18 @@
+    def main(self):
+        # ... existing code ...
+            
+            # Only check for new events if not waiting and animation is complete
+            if (not self.waiting_for_input and 
+                self.animation_complete and
+                self.current_event_index < len(self.qt_events)):
+                
+                current_qt_event = self.qt_events[self.current_event_index]
+                # Calculate distance between fighter and QTE position
+                distance_to_event = current_qt_event.position - self.world_offset - self.fighter.rect.x
+                
+                # Show prompt when within trigger distance
+                if distance_to_event <= current_qt_event.trigger_distance:
+                    self.show_prompt(current_qt_event)
+                    self.current_event_index += 1
+            
+            # ... rest of the main loop ... 

@@ -1,0 +1,11 @@
+YOU CAN:
+
+-> Use the sprites as part of your game, even commercially. (Credit is not required, but is always appreciated.)
+
+YOU CAN'T:
+
+-> Resell the sprites as standalone characters.
+
+-> Use the character sprites as part of a character creation tool.
+
+-> Use in open source projects.

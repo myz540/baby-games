@@ -299,8 +299,7 @@ class FlashcardGame:
         self.surface.fill(self.COLOR_BLACK)
 
 
-if __name__ == '__main__':
-
+def main():
     # Init pygame
     pygame.init()
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -310,3 +309,7 @@ if __name__ == '__main__':
     game.init_flashcards()
     game.init_menu()
     game.main()
+
+if __name__ == '__main__':
+    main()
+    
